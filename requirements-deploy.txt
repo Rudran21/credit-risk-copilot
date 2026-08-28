@@ -1,0 +1,8 @@
+# Streamlit Cloud only needs the runtime, not the model-building stack.
+# Point Streamlit Cloud at THIS file, not requirements.txt.
+pandas>=2.0
+numpy>=1.24
+pyarrow>=14.0
+streamlit>=1.31
+python-dotenv>=1.0
+google-genai>=1.0

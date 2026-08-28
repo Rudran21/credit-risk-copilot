@@ -1,0 +1,134 @@
+# golden_questions.yaml
+#
+# 15 evaluation questions.
+#
+# Truth values are NOT hardcoded. Each question names an engine call, and the
+# harness runs it to get the expected answer at eval time. Hardcoded goldens go
+# stale the moment a parameter changes; this way the eval always tests against
+# the current model.
+#
+# types:
+#   numeric   the answer must contain the truth value, and cite it
+#   tool      only the tool selection is checked, not a specific figure
+#   refusal   the agent must decline; any figure at all is a failure
+
+- id: g01
+  question: >-
+    What is the total expected credit loss under the base scenario?
+  type: numeric
+  expect_tools: [compute_ecl]
+  truth: {fn: compute_ecl, args: {scenario: base}, field: ecl_total}
+
+- id: g02
+  question: >-
+    What is the total exposure at default across the whole live book?
+  type: numeric
+  expect_tools: [compute_ecl, get_portfolio_slice]
+  truth: {fn: compute_ecl, args: {scenario: base}, field: ead}
+
+- id: g03
+  question: >-
+    How much of the base-scenario provision sits in Stage 3?
+  type: numeric
+  expect_tools: [compute_ecl]
+  truth: {fn: compute_ecl, args: {scenario: base}, field: by_stage.stage_3.ecl}
+
+- id: g04
+  question: >-
+    What is the Stage 2 coverage ratio under the base scenario?
+  type: numeric
+  expect_tools: [compute_ecl]
+  truth: {fn: compute_ecl, args: {scenario: base}, field: by_stage.stage_2.coverage_pct}
+
+- id: g05
+  question: >-
+    What is the provision under the severe scenario?
+  type: numeric
+  expect_tools: [compute_ecl]
+  truth: {fn: compute_ecl, args: {scenario: severe}, field: ecl_total}
+
+- id: g06
+  question: >-
+    What is the expected credit loss on grade D loans under the adverse scenario?
+  type: numeric
+  expect_tools: [compute_ecl]
+  truth:
+    fn: compute_ecl
+    args: {scenario: adverse, filters: {grade: [D]}}
+    field: ecl_total
+
+- id: g07
+  question: >-
+    How many loans are in Stage 3?
+  type: numeric
+  expect_tools: [compute_ecl, get_portfolio_slice]
+  truth: {fn: compute_ecl, args: {scenario: base}, field: by_stage.stage_3.n_loans}
+
+- id: g08
+  question: >-
+    What is the exposure on grades F and G combined?
+  type: numeric
+  expect_tools: [get_portfolio_slice, compute_ecl, compare_segments]
+  truth:
+    fn: get_portfolio_slice
+    args: {filters: {grade: [F, G]}}
+    field: ead
+
+- id: g09
+  question: >-
+    What is the weighted average interest rate on 60-month loans?
+  type: numeric
+  expect_tools: [get_portfolio_slice]
+  truth:
+    fn: get_portfolio_slice
+    args: {filters: {term: ["60"]}}
+    field: weighted_avg_interest_rate_pct
+
+- id: g10
+  question: >-
+    If default hazards rose by 50 percent, by how much would the provision
+    increase?
+  type: numeric
+  expect_tools: [run_stress]
+  truth: {fn: run_stress, args: {pd_scalar: 1.5}, field: delta_ecl}
+
+- id: g11
+  question: >-
+    Which single origination grade carries the largest provision under the
+    base scenario?
+  type: numeric
+  # compare_segments did not exist when this expectation was first written.
+  # It is the better tool for the question and is accepted.
+  expect_tools: [compute_ecl, compare_segments]
+  truth:
+    fn: compute_ecl
+    args: {scenario: base, filters: {grade: [C]}}
+    field: ecl_total
+
+- id: g12
+  question: >-
+    What is the coverage ratio on grade A under the base scenario, and how
+    does it compare to grade G?
+  type: numeric
+  expect_tools: [compute_ecl, compare_segments]
+  truth:
+    fn: compute_ecl
+    args: {scenario: base, filters: {grade: [A]}}
+    field: coverage_pct
+
+- id: g13
+  question: >-
+    Explain why the loan with the largest Stage 2 exposure sits in Stage 2.
+  type: tool
+  expect_tools: [explain_stage_assignment]
+
+- id: g14
+  question: >-
+    What was this portfolio's provision in the previous quarter?
+  type: refusal
+
+- id: g15
+  question: >-
+    What is the current unemployment rate assumption used in the base scenario,
+    expressed as a level rather than a change?
+  type: refusal

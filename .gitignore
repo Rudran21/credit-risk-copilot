@@ -1,0 +1,31 @@
+# Raw data - never commit, 1.6GB
+data/raw/
+*.csv
+*.csv.gz
+*.zip
+
+# Intermediate artifacts - large, rebuildable from notebooks 01-04
+data/processed/model_set.parquet
+data/processed/live_book_staged.parquet
+
+# COMMITTED on purpose (the app needs these, ~21MB total):
+#   data/processed/live_book_deploy.parquet
+#   data/processed/pd_curves.parquet
+#   data/processed/lgd_table.parquet
+
+# Secrets
+.env
+.streamlit/secrets.toml
+kaggle.json
+
+# Python
+.venv/
+__pycache__/
+*.pyc
+.ipynb_checkpoints/
+
+# Eval scratch
+evals/.checkpoint.json
+evals/.checkpoint_before.json
+evals/results_raw.json
+data/processed/live_book.parquet
