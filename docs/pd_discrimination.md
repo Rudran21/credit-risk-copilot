@@ -2,40 +2,41 @@
 
 ## Design
 
-Out-of-time split, not random, so the economic cycle cannot leak between train and test.
+Out-of-time split, not random, so the economic cycle cannot leak between train and test. The PD curves are **refitted on the train cohort only**, so the test loans played no part in fitting.
 
 | | Definition | n | Default rate |
 |---|---|---|---|
-| Train | issued on or before 2013-12 | 227,957 | 15.50% |
+| Train | issued on or before 2013-12 (36m and 60m) | 227,957 | 15.50% |
 | Test | 36m issued 2014-01 to 2015-12 | 445,596 | 14.46% |
 
 Both drawn from the seasoned cohort, so every test loan had time to run its full contractual term before the snapshot. No feature measured after origination enters either score; `last_fico` is excluded because it is observed at payoff or charge-off and would leak the outcome.
 
 ## Results
 
+In-sample rows use 36-month train loans only, so they are comparable with the 36-month test set.
+
 | Model | Sample | AUC | Gini | KS | Distinct scores |
 |---|---|---|---|---|---|
 | Grade x term PD | **out-of-time** | **0.6608** | **0.3216** | **0.2522** | 7 |
-| Grade x term PD | in-sample | 0.6609 | 0.3217 | 0.2362 | 14 |
+| Grade x term PD | in-sample (36m) | 0.6282 | 0.2564 | 0.1999 | 7 |
 | Logistic benchmark | **out-of-time** | **0.6678** | **0.3355** | **0.2452** | 445,570 |
-| Logistic benchmark | in-sample | 0.6850 | 0.3701 | 0.2679 | 227,954 |
+| Logistic benchmark | in-sample (36m) | 0.6610 | 0.3220 | 0.2357 | 172,986 |
 
-## Calibration on the out-of-time test set
+## Calibration on the out-of-time test set, by grade
 
-| Band | n | Predicted | Actual | Lift |
+| Grade | n | Predicted | Actual | Gap (pp) |
 |---|---|---|---|---|
-| 1 | 44,560 | 5.43% | 5.20% | 0.36x |
-| 2 | 44,560 | 5.43% | 5.61% | 0.39x |
-| 3 | 44,559 | 9.03% | 9.72% | 0.67x |
-| 4 | 44,560 | 11.11% | 11.66% | 0.81x |
-| 5 | 44,559 | 11.11% | 11.39% | 0.79x |
-| 6 | 44,560 | 13.62% | 14.27% | 0.99x |
-| 7 | 44,559 | 17.79% | 19.27% | 1.33x |
-| 8 | 44,560 | 17.79% | 18.00% | 1.24x |
-| 9 | 44,559 | 21.28% | 22.94% | 1.59x |
-| 10 | 44,560 | 25.93% | 26.56% | 1.84x |
+| A | 105,451 | 5.60% | 5.41% | +0.19 |
+| B | 145,185 | 10.52% | 11.46% | -0.94 |
+| C | 121,465 | 15.62% | 18.63% | -3.00 |
+| D | 53,221 | 20.03% | 24.66% | -4.63 |
+| E | 16,509 | 22.07% | 30.35% | -8.28 |
+| F | 3,341 | 25.33% | 34.75% | -9.42 |
+| G | 424 | 30.53% | 41.98% | -11.45 |
 
-Overall predicted **13.85%** versus actual **14.46%**, a gap of **-0.61pp** on loans the model never saw.
+Overall predicted **12.44%** versus actual **14.46%**, a gap of **-2.02pp** on loans excluded from fitting.
+
+For reference, curves fitted on all vintages (which include the test loans) predict 13.85%, a gap of -0.61pp. That version flatters the result and is not used as evidence.
 
 ## Interpretation
 
